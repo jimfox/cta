@@ -1,0 +1,479 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+ <title>Shepard's Catalog Editor</title>
+
+<script>
+djConfig = {
+  modulePaths: {
+    "dojo": "https://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo",
+    "dijit": "https://ajax.googleapis.com/ajax/libs/dojo/1.6/dijit",
+    "dojox": "https://ajax.googleapis.com/ajax/libs/dojo/1.6/dojox"
+  }
+};
+</script>
+
+  <link rel="stylesheet" type="text/css" href="https://ajax.googleapis.com/ajax/libs/dojo/1.6/dijit/themes/tundra/tundra.css"/> 
+  <!-- <link rel="stylesheet" type="text/css" href="https://ajax.googleapis.com/ajax/libs/dojo/1.6/dijit/themes/claro/claro.css"/> -->
+  <link rel="stylesheet" type="text/css" href="https://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/resources/dojo.css"/>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js" djConfig="parseOnLoad: true"> </script>
+  <link rel="stylesheet" type="text/css" href="/css/agent.css"/>
+
+  <script type="text/javascript">
+     dojo.require("dijit.form.Button");
+     dojo.require("dijit.Dialog");
+     dojo.require("dijit.layout.ContentPane");
+     dojo.require("dijit.layout.BorderContainer");
+     dojo.require("dijit.form.TextBox");
+     dojo.require("dijit.layout.TabContainer");
+     dojo.require("dijit.form.Textarea");
+     dojo.require("dijit.form.ComboBox");
+     dojo.require("dijit.MenuBar");
+     dojo.require("dijit.Menu");
+     dojo.require("dijit.MenuItem");
+  </script>
+
+<script>
+var agentName;
+var agentSrc;
+var agentHtml;
+var agentTitle;
+
+var updateMode = 'x';
+
+// convert tex to html (somewhat like tex output)
+
+function texToHtml(tex) {
+  var html = tex.replace(/\\-/g, "&shy;");
+  html = html.replace(/---/g, "&mdash;");
+  html = html.replace(/--/g, "&ndash;");
+  html = html.replace(/\\%/g, "%");
+  html = html.replace(/\\bb/g, "");
+  html = html.replace(/\\eb/g, "");
+  html = html.replace(/\\tm/g, "&#8482;");
+  html = html.replace(/\$<\$/g, "&lt;");
+  html = html.replace(/\$>\$/g, "&gt;");
+  html = html.replace(/\$\\alpha\$/g, "&alpha;");
+  html = html.replace(/\$\\beta\$/g, "&beta;");
+  html = html.replace(/\$\\gamma\$/g, "&gamma;");
+  html = html.replace(/\$\^\{([^}]*)\}\$/g, "<sup>$1</sup>");
+  html = html.replace(/\$\_\{([^}]*)\}\$/g, "<sub>$1</sub>");
+  html = html.replace(/\\ag (.*)\n/g, "<p><b>$1</b> ");
+  html = html.replace(/\\syn (.*)\n/g, "<i>$1</i> ");
+  html = html.replace(/\\cas (.*)\n/g, "<i>CAS $1</i>\n");
+  html = html.replace(/"/g, "&rdquo;");
+  html = html.replace(/'/g, "&rsquo;");
+  html = html.replace(/\\abs/g, "<p align=\"justify\">");
+  html = html.replace(/\\bib/g, "<p align=\"justify\">");
+  html = html.replace(/\{\\bf ([^}]*)\}/g, "<b>$1</b>");
+  html = html.replace(/\n\n/g, "<p>\n");
+  return html;
+}
+
+
+// get the source for an agent
+// goes to <agentSourceText> and <agentHtml>
+
+function getAgent(i) {
+   dojo.byId('agentSourceTitle').innerHTML = '';
+   var agent = agents[i];
+   agentName = agent[0];
+   agentTitle = agent[1];
+   // alert(agentName);
+   var url = 'agent?type=tex&agent=' + agentName + '&nocache=' + Math.random();
+   // alert('get: ' + url);
+   document.body.style.cursor = 'wait';
+   dojo.xhrGet({
+      url: url,
+      handleAs: 'text',
+      load: function(data, args) {
+           // alert('got: ' + data);
+           if (data.indexOf('weblogin.washington.edu')>0) {
+              alert("Your session has expired.\nReload the page to acquire a new session.");
+           } else {
+              agentSrc = data;
+              agentHtml = texToHtml(agentSrc);
+              dijit.byId('agentSourceText').set('value', data);
+              dojo.byId('agentHtml').innerHTML = agentHtml;
+              document.body.style.cursor = 'default';
+              dojo.byId('buttonBar').style.display = '';
+              dojo.byId('newBtn').style.display = '';
+            
+           }
+           updateMode = 'r';
+           document.body.style.cursor = 'default';
+         },
+      error: function(data, args) {
+         alert('failed with status: ' + args.xhr.status);
+         document.body.style.cursor = 'default';
+       }
+   });
+}
+
+// get the pdf for an agent
+// goes to <agentPdf>
+
+function getAgentPdf() {
+   var url = 'agent?type=pdf&agent=' + agentName + '&nocache=' + Math.random();
+   // alert('ifream: ' + url);
+   dojo.byId('agentPdf').innerHTML = '<iframe src="' + url + '" width="100%" height="400" ></iframe>';
+}
+
+// reformat the html display
+function testAgentSource() {
+   var a = dijit.byId('agentSourceText').get('value');
+   agentHtml = texToHtml(a);
+   dojo.byId('agentHtml').innerHTML = '<i>&mdash;draft&mdash;</i><hr>' + agentHtml;
+}
+
+// set for new agent
+function startNewAgent() {
+   var a = dijit.byId('agentSourceText').set('value', '');
+   dojo.byId('agentHtml').innerHTML = '';
+   dojo.byId('agentSourceTitle').innerHTML = 'new agent to come before ' + agentName;
+   updateMode = 'i';
+   dojo.byId('newBtn').style.display = 'none';
+}
+
+// reset (cancel)
+function resetPage() {
+   var a = dijit.byId('agentSourceText').set('value', '');
+   dojo.byId('agentHtml').innerHTML = '';
+   dojo.byId('agentSourceTitle').innerHTML = '';
+   agentName = '';
+   agentSrc = '';
+   agentHtml = '';
+   agentTitle = '';
+   updateMode = 'x';
+   dojo.byId('buttonBar').style.display = 'none';
+}
+
+// send tex to app for real
+// clears panes
+
+function updateAgentSource() {
+   var a = dijit.byId('agentSourceText').get('value').replace(/\\nag /, '\\ag ');  // nip in bud
+   var url = 'agent?type=tex&mode=' + updateMode + '&agent=' + agentName;
+   // alert('putdata: (' + a.length + ') ' + a);
+   document.body.style.cursor = 'wait';
+   dojo.xhrPut({
+      url: url,
+      handleAs: 'text',
+      headers: { "Content-Type": "text/plain" },
+      putData: a,
+      load: function(data, args) {
+           if (data.indexOf('weblogin.washington.edu')>0) {
+              alert("Your session has expired.\nReload the page to acquire a new session.");
+           } else {
+              if (data.match(/^error/)) {
+                 alert(data); 
+              } else {
+                 alert('Catalog updated. '); 
+                 if (updateMode=='i') document.location = "";  // need refresh of the agent lit.
+                 else resetPage();
+              }
+           }
+           document.body.style.cursor = 'default';
+         },
+      error: function(data, args) {
+          alert('failed with status: ' + args.xhr.status + ' data: ' + data);
+          document.body.style.cursor = 'default';
+       }
+   });
+}
+
+// delete agent
+
+function deleteAgent() {
+   if (!confirm("Really delete this agent?")) return false;
+   var url = 'agent?type=tex&mode=d&agent=' + agentName;
+   document.body.style.cursor = 'wait';
+   dojo.xhrDelete({
+      url: url,
+      handleAs: 'text',
+      load: function(data, args) {
+           if (data.indexOf('weblogin.washington.edu')>0) {
+              alert("Your session has expired.\nReload the page to acquire a new session.");
+           } else {
+              alert('Deleted.');
+              document.location = "";
+           }
+           document.body.style.cursor = 'default';
+         },
+      error: function(data, args) {
+          alert('failed with status: ' + args.xhr.status);
+          document.body.style.cursor = 'default';
+       }
+   });
+}
+
+
+/* agent list added by agent */
+var agents = {{ agent_list | safe }};
+
+// search agents for matches
+function showSelect() {
+   var sel = dijit.byId('agentSelect').get('value').toLowerCase();
+   sel = sel.replace(/---/g, "&mdash;");
+   sel = sel.replace(/--/g, "&ndash;");
+   var agsel = '';
+   dojo.forEach(agents, function(item, index) {
+      // dojo.byId('note2').innerHTML = item[0];
+      if (item[1].toLowerCase().search(sel)>=0) {
+        agsel = agsel + '<br><a href="javascript:getAgent(' + index + ')" title="' + item[0] + '">';
+        if (item[2]=='a') agsel = agsel + item[1];
+        else agsel = agsel + '<i>&nbsp;' + item[1] + '</i>';
+        agsel = agsel + '</a>';
+      }
+   });
+   dojo.byId('agentHtml').innerHTML = agsel;
+   dijit.byId('agentSourceText').set('value', '');
+   dojo.byId('agentSourceTitle').innerHTML = '';
+   dojo.byId('buttonBar').style.display = 'none';
+}
+
+// show all 'real' agents
+function showAllAgents() {
+   var agsel = '';
+   dojo.forEach(agents, function(item, index) {
+      if (item[2]=='a') {
+        agsel = agsel + '<br><a href="javascript:getAgent(' + index + ')" title="' + item[0] + '">' + item[1] + '</a>';
+      }
+   });
+   dojo.byId('agentHtml').innerHTML = agsel;
+   dijit.byId('agentSourceText').set('value', '');
+   dojo.byId('agentSourceTitle').innerHTML = '';
+   dojo.byId('buttonBar').style.display = 'none';
+}
+
+function showMainPage() {
+   // dojo.byId('theflash').style.display = 'none';
+   console.log('show main');
+   var p = dojo.byId('thepage');
+   p.style.display = '';
+   p.style.width = '100%';
+   p.style.height = '100%';
+   dijit.byId('thepage').layout();
+   dijit.byId('thepage').resize();
+}
+
+dojo.addOnLoad(showMainPage);
+
+</script>
+
+
+<body class="tundra" id="documentbody"> 
+
+
+<!--
+<div id="theflash" dojoType="dijit.layout.ContentPane" style="width: 100%; height:100%">
+<div style="width: 100%; height:50%">
+</div>
+<div align="center"><img src="/img/circle_loader.gif">
+</div>
+</div>
+-->
+
+<div id="thepage" dojoType="dijit.layout.BorderContainer" gutters="false" liveSplitters="true" doLayout="false"  >
+
+<div id="banner" class="container" dojoType="dijit.layout.ContentPane" region="top" splitter="false" >
+<span class="title">Shepard's Catalog Editor</span>
+ <span style="color:#000000; float: right">
+  <span style="color:#f0fff0">{{ username }}</span>
+  <button dojoType="dijit.form.Button" type="button" onClick="showSelect" style="color:#000000; align: right">
+    {{ url_linktext }}
+    <script type="dojo/connect" data-dojo-event="onClick">
+     window.location = "{{ url|safe }}";
+    </script>
+  </button>
+ </span>
+</div>
+
+<!-- agent selector -->
+<div id="selector" dojoType="dijit.layout.ContentPane" region="top" splitter="false" doLayout="false">
+
+<div dojoType="dijit.layout.ContentPane" >
+Search for an agent by name
+<br>
+<input dojoType="dijit.form.TextBox" value="" id="agentSelect" >
+   <script type="dojo/method" event="onKeyPress" args="evt">
+      if (evt.keyCode==13) {
+         showSelect();
+      }
+   </script>
+</input>
+  <button id="searchBtn" dojoType="dijit.form.Button" type="button" onClick="showSelect">
+    Search
+  </button>
+  <button id="allAgentsBtn" dojoType="dijit.form.Button" type="button" onClick="showAllAgents">
+    Show all agents
+  </button>
+
+
+  <div dojoType="dijit.form.DropDownButton">
+      <span>
+          Help
+      </span>
+     <div data-dojo-type="dijit.Menu" id="helpMenu">
+         <div data-dojo-type="dijit.MenuItem" data-dojo-props="onClick:function(){dijit.byId('helpAbout').show();}">
+          About the catalog
+         </div>
+         <div data-dojo-type="dijit.MenuItem" data-dojo-props="onClick:function(){dijit.byId('helpFind').show();}">
+          Finding agents
+         </div>
+         <div data-dojo-type="dijit.MenuItem" data-dojo-props="onClick:function(){dijit.byId('helpEdit').show();}">
+          Editing agent source
+         </div>
+         <div data-dojo-type="dijit.MenuItem" data-dojo-props="onClick:function(){dijit.byId('helpNew').show();}">
+          Creating a new agent
+         </div>
+         <div data-dojo-type="dijit.MenuItem" data-dojo-props="onClick:function(){dijit.byId('helpMM').show();}">
+          Micromedex export
+         </div>
+     </div>
+  </div>
+<span id="note1"></span>
+<span id="note2"></span>
+</div>
+
+<!-- Help: about -->
+<div id="helpAbout" class="helptext" dojoType="dijit.Dialog" title="About the catalog" style="overflow:auto;display:none">
+This is the online editor for the 
+<a href="http://www.barnesandnoble.com/w/catalog-of-teratogenic-agents-thomas-h-shepard/1102888075">
+Catalog of Teratogenic Agents</a>, edited by Dr. Thomas Shepard and Dr. Janine Polifka.
+<p/>
+The catalog is maintained as a <a href="http://www.latex-project.org/">LaTeX</a> document,
+which allows the greatest flexibility and precision in the event that we once again provide a printed book.
+For now it is made available online through Micromedix.
+<p/>
+This editor shows an agent formatted similarily to the book, and allows one to 
+edit, verify and update the agent's LaTeX source.  
+<p/>
+Jim Fox
+<br/>
+February 22, 2013
+</div>
+
+<!-- Help: find -->
+<div id="helpFind" class="helptext" dojoType="dijit.Dialog" title="Finding agents" style="overflow:auto;display:none">
+There are two ways to find agents:
+<p>
+<ol>
+<li>
+Enter a few or more characters of an agent's name and click 'Search' or hit Enter.
+Matching agents and synonyms will be listed.  Synonyms appear in italic.
+The search string may occur anywhere in the agent name, so <b>ab</b> would
+match <tt>Abacavir</tt> and also <tt>Pentabarbital</tt>
+</li>
+<p>
+<li>
+Click on 'Show all agents' to see the entire index of agents.  In this case synonyms are <em>not</em> included.
+This may be useful to find the right spot to insert a new agent.
+</li>
+</ol>
+<p>
+Click on any agent in the list to see or edit its entry.
+<p>
+</div>
+
+<!-- Help: edit -->
+<div id="helpEdit" class="helptext" dojoType="dijit.Dialog" title="Editing text" style="overflow:auto;display:none">
+LaTeX uses embedded directives to control document formatting.  These usually start with a backslash&mdash;but not always.
+<p/>
+<table padding="2" width="100%" border="0" style="padding: 1px 4px 1px 2px; border-bottom: 1px dotted #000000;">
+<tr><td colspan="2">Agent structure. These appear in the order indicated.</td></tr>
+<tr><td class="helpTex">\ag</td><td>Starts an agent.  This must be the first line for any agent. The rest of the line is the agent name.</td></tr>
+<tr><td class="helpTex">\syn</td><td>Identifies a synonym for the agent.  The rest of the line is the synonym name.</td></tr>
+<tr><td class="helpTex">\cas</td><td>Identifies a CAS number for the agent. </td></tr>
+<tr><td class="helpTex">\abs</td><td>Starts the abstract. </td></tr>
+<tr><td class="helpTex">\bib</td><td>Starts a bibliography entry. </td></tr>
+<tr><td colspan="2"><hr></td></tr>
+<tr><td colspan="2">General formatting directives. These may be used anywhere.</td></tr>
+<tr><td class="helpTex"><span class="helpTexItal">blank line</span></td><td>Indicates a new paragraph.</td></tr>
+<tr><td class="helpTex">--</td><td>an en-dash</td></tr>
+<tr><td class="helpTex">---</td><td>An em-dash</td></tr>
+<tr><td class="helpTex">$&lt;$</td><td>A less than (&lt;)</td></tr>
+<tr><td class="helpTex">$&gt;$</td><td>A greator than (&gt;)</td></tr>
+<tr><td class="helpTex">$\alpha$</td><td>An alpha (&alpha;)</td></tr>
+<tr><td class="helpTex">$\beta$</td><td>A beta (&beta;)</td></tr>
+<tr><td class="helpTex">$\gamma$</td><td>A gamma (&gamma;)</td></tr>
+<tr><td class="helpTex">$^{<span class="helpTexItal">text</span>}$</td><td><i>text</i> as a superscript</td></tr>
+<tr><td class="helpTex">$_{<span class="helpTexItal">text</span>}$</td><td><i>text</i> as a subscript</td></tr>
+<tr><td class="helpTex">{\bf <span class="helpTexItal">text</span>}</td><td><i>text</i> in bold type</td></tr>
+<tr><td class="helpTex">\%</td><td>A percent (%)</td></tr>
+<tr><td class="helpTex">\tm </td><td>trademark symbol</td></tr>
+<tr><td class="helpTex">\-</td><td>indicate possible hyphenation positions</td></tr>
+<tr><td colspan="2"><hr></td></tr>
+<tr><td colspan="2">Obsolete formatting directives. </td></tr>
+<tr><td class="helpTex">\nag</td><td>use <tt>\ag</tt> instead</td></tr>
+<tr><td class="helpTex">\bb .. \eb</td><td>ignored</td></tr>
+</table>
+</div>
+
+<!-- Help: New -->
+<div id="helpNew" class="helptext" dojoType="dijit.Dialog" title="Inserting a new agent" style="overflow:auto;display:none">
+Find the agent that you want to insert your new agent in front of&mdash;the 'Show all agents' button
+is useful for this&mdash;and click "Insert new agent".
+<p>
+When creating an entry for a new agent, do not be tempted simply to edit an existing agent by changing all
+its information.  On update it will replace the old agent text.
+</div>
+
+<!-- Help: Micromedex -->
+<div id="helpMM" class="helptext" dojoType="dijit.Dialog" title="Micromedex data file" style="overflow:auto;display:none">
+Updates to the catalog propagate automatically to
+the Micromedex export of the catalog.
+<p>
+This automatic process runs every quarter hour and recreates the
+<a href="https://staff.washington.edu/fox/cta/mm/shep.dat.zip">shep.dat.zip</a> file as needed.
+</div>
+
+</div> 
+
+
+<div id="agentHtmlPanel" dojoType="dijit.layout.ContentPane" title="Catalog" region="left" splitter="true" minSize="100">
+<div id="agentHtml" dojoType="dijit.layout.ContentPane">
+</div>
+</div>
+
+<div id="agentSourcePanel" dojoType="dijit.layout.ContentPane" title="Edit source" region="center" splitter="true" height="400px">
+<!-- button bar -->
+<table id="buttonBar" width="100%" style="display:none">
+ <tr align="left"><td align="left" id="agentSourceTitle" ></td>
+ </tr>
+ <tr>
+ <td align="right" id="agentUpdateButtons" >
+  <button id="testBtn" dojoType="dijit.form.Button" type="button" onClick="testAgentSource()">
+    Preview changes
+  </button>
+  <button id="updBtn" dojoType="dijit.form.Button" type="button" onClick="updateAgentSource()">
+    Update catalog
+  </button>
+  <button id="newBtn" dojoType="dijit.form.Button" type="button" onClick="startNewAgent()">
+    Insert new agent
+  </button>
+  <button id="delBtn" dojoType="dijit.form.Button" type="button" onClick="deleteAgent()">
+    Delete
+  </button>
+  <button id="canBtn" dojoType="dijit.form.Button" type="button" onClick="resetPage()">
+    Cancel
+  </button>
+ </td>
+ </tr>
+</table>
+<textarea id="agentSourceText" name="agentsource" dojoType="dijit.form.Textarea" >
+</textarea>
+</div>
+
+<!--
+<div id="testPdf" dojoType="dijit.layout.ContentPane" style="overflow:auto" title="As edited"
+     width="100%" height="400">
+  <iframe id="testFrame" width="100%" height="400" >
+   </iframe>
+</div>
+-->
+
+</div>
+
+</body>
+</html>

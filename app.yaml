@@ -1,0 +1,40 @@
+runtime: python27
+api_version: 1
+threadsafe: true
+
+env_variables:
+  CATALOG_NAME: 'cat.tex'
+  MEDEX_NAME: 'shep.dat'
+
+basic_scaling:
+  max_instances: 3
+  idle_timeout: 30m
+
+# [START handlers]
+handlers:
+- url: /favicon\.ico
+  static_files: favicon.ico
+  upload: favicon\.ico
+
+- url: /css
+  static_dir: static/css
+
+- url: /img
+  static_dir: static/img
+
+- url: /.*
+  script: cta.app
+  login: admin
+  secure: always
+
+# [END handlers]
+
+# [START libraries]
+libraries:
+- name: webapp2
+  version: latest
+- name: jinja2
+  version: latest
+# [END libraries]
+
+
