@@ -1,0 +1,102 @@
+body {
+   background: none repeat scroll 0 0 white;
+   color: #000000;
+   font-family: Lucida Sans,Lucida Grande,Arial !important;
+   font-size: 13px !important;
+   margin: 0;
+   padding: 0;
+}
+
+h1 {
+    font-family: "Helvetica","Arial",sans-serif;
+    color: #202020;
+    font-size: 22px;
+    font-weight: bold;
+    margin: 10px 0 12px 8px;
+    padding: 0 0 0 0;
+}
+
+h2 {
+    font-family: "Helvetica","Arial",sans-serif;
+    color: #303030;
+    font-size: 20px;
+    margin: 8px 0 8px 4px;
+    padding: 0 0 0 0;
+}
+h3 {
+    font-family: "Helvetica","Arial",sans-serif;
+    color: #303030;
+    font-size: 16px;
+    margin: 8px 0 8px 4px;
+    padding: 0 0 0 0;
+}
+
+.helptext {
+   width:60%;
+}
+
+#theborder {
+   width: 100%;
+   height: 100%;
+}
+
+#banner {
+   padding:4px 10px 10px 20px;
+   color:#ffe4b0;
+   background-color:#503080;
+}
+#banner .title {
+   color:#ffe4b0;
+   font-size: 20px;
+}
+#selector {
+   padding:5px;
+   background-color:#e8e8ff;
+   border-bottom: 1px solid #303030;
+}
+
+#agentHtmlPanel {
+   overflow:auto;
+   width:370px;
+}
+#agentHtml {
+   font-family:New Century Schoolbook,Georgia,Serif;
+   background-color:#f0f0ff;
+   padding:6px;
+   border:5px ridge #d8d8ef;
+}
+
+#agentHtml a {
+   text-decoration: none;
+   color: #200030;
+}
+#agentHtml a:hover {
+   text-decoration: none;
+   color: #200030;
+   border-bottom: 1px solid #200030;
+}
+
+#agentSourcePanel {
+   overflow:auto;
+   margin:4px;
+}
+#agentSourceText {
+   background-color:#ffffff;
+   border: 5px ridge #e8e8ff;
+   padding:3px;
+   font-size:90%;
+   min-height: 200px;
+}
+.helpTex {
+   font-size:90%;
+   font-family: "Courier New", Courier, monospace;
+   font-weight: bold;
+   padding-left: 4px;
+   vertical-align: baseline;
+   white-space: nowrap;
+}
+.helpTexItal {
+   font-family: "Helvetica","Arial",sans-serif;
+   font-weight: normal;
+   font-style: italic;
+}

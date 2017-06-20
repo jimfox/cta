@@ -18,6 +18,8 @@ from ctalib import Agent
 from ctalib import htmlify
 from ctalib import load_agents
 from ctalib import save_agents
+from ctalib import save_medex
+
 from ctalib import log_agent
 from ctalib import agent_list
 
@@ -101,6 +103,7 @@ class AgentHandler(webapp2.RequestHandler):
                 agents[agent_name] = agent
             log_agent(agents[agent_name])
             save_agents(agents)
+            save_medex(agents)
             self.response.write("OK")
         else:
             self.response.write("error: agent names do not match")

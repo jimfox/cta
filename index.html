@@ -47,6 +47,8 @@ function texToHtml(tex) {
   var html = tex.replace(/\\-/g, "&shy;");
   html = html.replace(/---/g, "&mdash;");
   html = html.replace(/--/g, "&ndash;");
+  html = html.replace(/\%\n/g, '\n');
+  html = html.replace(/\%$/g, "");
   html = html.replace(/\\%/g, "%");
   html = html.replace(/\\bb/g, "");
   html = html.replace(/\\eb/g, "");
@@ -244,6 +246,7 @@ function showAllAgents() {
    dijit.byId('agentSourceText').set('value', '');
    dojo.byId('agentSourceTitle').innerHTML = '';
    dojo.byId('buttonBar').style.display = 'none';
+
 }
 
 function showMainPage() {

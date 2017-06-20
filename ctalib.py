@@ -32,6 +32,12 @@ def _catalog_filename():
     filename = '/' + bucket_name + '/' + catalog_name
     return filename
 
+def _medex_filename():
+    bucket_name = os.environ.get('BUCKET_NAME', app_identity.get_default_gcs_bucket_name())
+    medex_name = os.environ.get('MEDEX_NAME', 'shep.dat')
+    filename = '/' + bucket_name + '/' + medex_name
+    return filename
+
 def _agent_filename():
     bucket_name = os.environ.get('BUCKET_NAME', app_identity.get_default_gcs_bucket_name())
     log_name = 'agent.' + datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
@@ -56,11 +62,13 @@ def load_agents():
             if agent is not None: 
                 agent.add_text(text)
                 agents[agent.name] = agent
+            l = re.sub('\\\\-', '', l)
             agent = Agent(l[4:].strip())
             text = ''
-        text = text + l
         if l.find('\\syn ') == 0:
+            l = re.sub('\\\\-', '', l)
             agent.add_syn(l[5:].strip())
+        text = text + l
 
     agent.add_text(text)
     agents[agent.name] = agent
@@ -95,7 +103,7 @@ def log_agent(agent):
 
 
 
-_htmlsubs = [
+_html_subs = [
  ('\\\\-', ''),
  ('\\\\{','{'),
  ('\\\\}','}'),
@@ -112,7 +120,7 @@ _htmlsubs = [
 ]
 
 def htmlify(text):
-    for p,r in _htmlsubs:
+    for p,r in _html_subs:
         text = re.sub(p, r, text)
     return text
    
@@ -125,3 +133,39 @@ def agent_list(agents):
             list.append([a.name, htmlify(s), 's'])
     return sorted(list, key=lambda x: x[0])
 
+
+# medex translations
+
+_medex_subs = [
+  ('\\\\-',''),
+  ('\\\\bb',''),
+  ('\\\\eb',''),
+  ('\\\\tm',''),
+  ('\`\`','"'),
+  ('\'\'','"'),
+  ('^\$',''),
+  ('(?P<d>[^\\\\])\$','\g<d>'),
+  ('\\\\\$','$'),
+  ('\\\\alpha','alpha'),
+  ('\\\\beta','beta'),
+  ('\\\\delta','delta'),
+  ('\\\\gamma','gamma'),
+  ('\\\\also','also'),
+  ('{\\\\bf(?P<a>[^}]*)}','\g<a>'),
+  ('\\\\b(?P<a>\d)','\g<a>'),
+  ('--','-'),
+  ('\^{(?P<a>[^\]]*)}','\g<a>'),
+  ('\_{(?P<a>[^\]]*)}','\g<a>')
+]
+
+def save_medex(agents):
+    filename = _medex_filename()
+    logging.info('Saving medex to: ' + filename)
+    write_retry_params = gcs.RetryParams(backoff_factor=1.1)
+    with gcs.open(filename, 'w', content_type='text/plain', retry_params=write_retry_params) as cloudstorage_file:
+        for a in sorted(agents):
+            text = agents[a].text
+            for p,r in _medex_subs:
+                text = re.sub(p, r, text)
+            cloudstorage_file.write(text)
+    logging.info('save completed')
