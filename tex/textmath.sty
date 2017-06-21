@@ -1,0 +1,58 @@
+%%
+%% Use text defaults for much of math
+%%
+\def\fileversion{1.0}
+\def\filedate{1994/12/05}
+\def\docdate {1994/12/05}
+\ProvidesPackage{textmath}[\filedate\space\fileversion\space
+  TextMath package]
+\DeclareSymbolFont{operators}{\encodingdefault}{\rmdefault}{m}{n}
+\DeclareSymbolFont{italics}{\encodingdefault}{\rmdefault}{m}{it}
+\SetSymbolFont{operators}{bold}{\encodingdefault}{\rmdefault}{b}{n}
+\SetSymbolFont{operators}{normal}{\encodingdefault}{\rmdefault}{m}{n}
+
+\DeclareMathAlphabet      {\mathbf}{\encodingdefault}{\rmdefault}{b}{n}%
+\DeclareMathAlphabet      {\mathrm}{\encodingdefault}{\rmdefault}{m}{n}%
+\DeclareMathAlphabet      {\mathsf}{\encodingdefault}{\sfdefault}{m}{n}%
+\DeclareMathAlphabet      {\mathit}{\encodingdefault}{\rmdefault}{m}{it}%
+\DeclareMathAlphabet      {\mathtt}{\encodingdefault}{\ttdefault}{m}{n}%
+\SetMathAlphabet{\mathbf}{bold}{\encodingdefault}{\rmdefault}{b}{n}%
+\SetMathAlphabet{\mathsf}{bold}{\encodingdefault}{\sfdefault}{b}{n}%
+\SetMathAlphabet{\mathrm}{bold}{\encodingdefault}{\rmdefault}{b}{n}%
+\SetMathAlphabet{\mathit}{bold}{\encodingdefault}{\rmdefault}{b}{it}%
+\SetMathAlphabet{\mathtt}{bold}{\encodingdefault}{\ttdefault}{b}{n}%
+
+% this works only for the greek letters
+
+\DeclareSymbolFont{letters}{U}{psy}{m}{n}
+\SetSymbolFont{letters}{bold}{U}{psy}{n}{n}
+
+\mathchardef\alpha="0161
+\mathchardef\beta="0162
+\mathchardef\chi="0163
+\mathchardef\delta="0164
+\mathchardef\epsilon="0165
+\mathchardef\phi="0166
+\mathchardef\gamma="0167
+\mathchardef\eta="0168
+\mathchardef\iota="0169
+\mathchardef\varphi="016A
+\mathchardef\kappa="016B
+\mathchardef\lambda="016C
+\mathchardef\mu="016D
+\mathchardef\nu="016E
+\mathchardef\o="016F
+\mathchardef\pi="0170
+\mathchardef\theta="0171
+\mathchardef\rho="0172
+\mathchardef\sigma="0173
+\mathchardef\tau="0174
+\mathchardef\upsilon="0175
+\mathchardef\varpi="0176
+\mathchardef\omega="0177
+\mathchardef\xi="0178
+\mathchardef\psi="0179
+\mathchardef\zeta="017A
+
+\mathchardef\copyright="01D3
+

@@ -18,7 +18,7 @@ from ctalib import Agent
 from ctalib import htmlify
 from ctalib import load_agents
 from ctalib import save_agents
-from ctalib import save_medex
+from ctalib import gen_medex
 
 from ctalib import log_agent
 from ctalib import agent_list
@@ -77,36 +77,53 @@ class AgentHandler(webapp2.RequestHandler):
             agents = load_agents()
 
         logging.info('"' + agent_name + '"')
-        self.response.write(agents[agent_name].text)
+        if agent_name in agents:
+            self.response.write(agents[agent_name].text)
+        else:
+            self.response.write('error: agent {} not found'.format(agent_name))
 
     def put(self):
         global agents
         agent_name = self.request.get('agent')
+        mode = self.request.get('mode')
         if agents is None:
             agents = load_agents()
 
-        logging.info('update ' + agent_name)
+        if mode == 'i':
+            agent_name = None  # will get from text
+
         put_text = urllib.unquote_plus(self.request.body)
         lines = put_text.split('\n')
-        if lines[0].find('\\ag ') == 0 and lines[0][4:].strip() == agent_name:
-            logging.info('put agent name OK')
-            if agent_name in agents:
-                agents[agent_name].text = put_text
+        if lines[0].find('\\ag ') == 0:
+            put_name = lines[0][4:].strip()
+            if agent_name is None:
+                agent_name = put_name
+                logging.info('new agent: ' + agent_name)
+                if agent_name in agents:
+                    self.response.write('error: agent {} already exists'.format(agent_name))
+                    return
             else:
-                agent = Agent(agent_name)
-                for l in lines:
-                    if l.find('\\syn ') == 0:
-                        agent.add_syn(l[5:].strip())
-                    if l.find('\\abs ') == 0:
-                        break
-                agent.text = put_text
-                agents[agent_name] = agent
+                logging.info('update agent: ' + agent_name)
+                if agent_name != put_name:
+                    self.response.write('error: agent name does not match')
+                    return
+                if agent_name not in agents:
+                    self.response.write('error: agent {} not found'.format(agent_name))
+                    return
+               
+            agent = Agent(agent_name)
+            for l in lines:
+                if l.find('\\syn ') == 0:
+                    agent.add_syn(l[5:].strip())
+                if l.find('\\abs ') == 0:
+                    break
+            agent.text = put_text
+            agents[agent_name] = agent
             log_agent(agents[agent_name])
             save_agents(agents)
-            save_medex(agents)
             self.response.write("OK")
         else:
-            self.response.write("error: agent names do not match")
+            self.response.write("error: invalid agent text")
 
     def delete(self):
         global agents
@@ -122,8 +139,21 @@ class AgentHandler(webapp2.RequestHandler):
         self.response.write("OK")
 
 
+class MedexHandler(webapp2.RequestHandler):
+
+    def get(self):
+        global agents
+        if agents is None:
+            agents = load_agents()
+
+        self.response.headers.add_header('Content-type', 'text/plain; charset=us-ascii')
+        self.response.headers.add_header('Content-Disposition', 'attachment; filename=medex.txt')
+        self.response.write(gen_medex(agents))
+
+
 
 app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/agent', AgentHandler),
+    ('/medex/medex.txt', MedexHandler),
 ], debug=True)

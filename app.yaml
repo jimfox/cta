@@ -3,8 +3,8 @@ api_version: 1
 threadsafe: true
 
 env_variables:
-  CATALOG_NAME: 'cat.tex'
-  MEDEX_NAME: 'shep.dat'
+  CATALOG_NAME: 'catalog.tex'
+  MEDEX_NAME: 'medex.txt'
 
 basic_scaling:
   max_instances: 3
@@ -37,4 +37,12 @@ libraries:
   version: latest
 # [END libraries]
 
+skip_files:
+- ^(.*/)?#.*#$
+- ^(.*/)?.*~$
+- ^(.*/)?.*\.py[co]$
+- ^(.*/)?\..*$
+- ^(.*/)?README.*$
+- ^tex$
+- ^(.*/)?.*\.sav$
 

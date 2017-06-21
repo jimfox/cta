@@ -1,0 +1,73 @@
+% 12th edition of Shepard's book  -- front part only
+%
+\documentclass{book}
+
+\usepackage{shepard}
+
+\begin{document} 
+
+\begin{preface}
+
+\include{front}
+\include{intro}
+
+
+% titlepage
+
+\clearemptydoublepage
+\thispagestyle{empty}
+\begingroup
+\parindent0pt
+\sffamily\LARGE\selectfont
+\vspace*{56pt}  % 12pc - topskip - headheight - headsep - LARGE baseline
+CATALOG OF TERATOGENIC AGENTS
+\endgroup
+\clearemptydoublepage
+
+\end{preface}
+
+% 
+
+% start of the catalog
+
+\setcounter{page}{1}\pagenumbering{arabic}
+\addcontentsline{toc}{chapter}{Catalog of Teratogenic Agents}
+
+\end{document}
+
+% skip the rest
+
+\relax
+
+\begin{multicols}{2}
+%
+\input catalog.tex
+% 
+\end{multicols}
+
+\clearpage
+
+
+% indices
+
+
+\begin{shindex}{Author Index}{4}
+{\it Citations are to entry numbers.}
+
+\ \par
+
+%
+\input authors.tex
+%
+\end{shindex}
+
+\begin{shindex}{Agent Index}{3}
+{\it Citations are to entry numbers.}
+
+\ \par
+
+%
+\input agents.tex
+%
+\end{shindex}
+\end{document}

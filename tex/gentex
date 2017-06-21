@@ -1,0 +1,315 @@
+#!/usr/bin/python
+
+#
+# parse shepard data and build database
+#
+
+import string
+import re
+import dbm
+import math
+
+debug = 0
+
+# files
+
+### input_data = ('p1.dat','p2.dat','p3.dat','p4.dat','p5.dat','p6.dat')
+input_data = ('catalog.tex','')
+author_tex  = 'authors.tex'
+agent_tex   = 'agents.tex'
+
+if debug:
+  input_data = ('c0.tex','')
+  author_tex  = 'au0.tex'
+  agent_tex   = 'ag0.tex'
+
+# line types
+
+typ_none = 0
+typ_ag = 1
+typ_abs = 2
+typ_bib = 3
+typ_syn = 4
+typ_cas = 5
+typ_eof = 99
+
+linetypes = [ \
+   (typ_ag, '\\ag'), \
+   (typ_ag, '\\nag'), \
+   (typ_abs, '\\abs'), \
+   (typ_syn, '\\syn'), \
+   (typ_syn, '\\also'), \
+   (typ_cas, '\\cas'), \
+   (typ_bib, '\\bib') ]
+
+agent_no = 0;
+savline = ''
+
+#
+# see if there's a command with this line
+#
+
+def ltype(line):
+   for typ,txt in linetypes:
+      # print "checking ", typ, " ", txt
+      p = string.find(line,txt) 
+      if p==0: 
+         (t,u) = ltype(line[3:])
+         if (t!=typ_none):
+            print '<< misplaced primitive [%s]' % ( line )
+         return typ, p
+      if p>0:
+         print '<< misplaced primitive [%s]' % ( line )
+   # print "none found"
+   return typ_none, 0
+
+
+#
+# get next lines - want an entire entry
+#
+
+def getline(f):
+
+   global savline
+
+   def get1line():
+      l = f.readline()
+      if l=='': return ''
+      l = string.strip(l)
+      if l=='': l = ' '
+      # print "[%s]" % l
+      l = re.sub('%$','',l)
+      return l
+ 
+
+   if savline<>'': line = savline
+   else: line = get1line()
+   
+   if line=='': return typ_eof, ''
+   typ,p = ltype(line)
+   while 1:
+      savline = get1line()
+      if savline=='': break
+      # print " new line: ", `savline`
+      t,q = ltype(savline)
+      if t<>typ_none: break
+      line = string.join((line, savline),'\n')
+      # print " line now: [%s]" % line
+   return typ, line
+
+
+#
+# make key from text - strip all special chars
+#
+
+def keytext(txt):
+  if debug: print " keytext in: ", txt
+  line = string.upper(txt)
+  txt0 = re.sub('SEE ALSO UNDER *','',line)
+  line = re.sub('\\\\\-', '', txt0) # remove \-
+  line = re.sub('_', '-', line) # remove _
+  line = re.sub('\$\\\\\w*\$', '-', line) # remove \alpha, etc
+  line = re.sub('\\\\BB *','', line) # remove \bb, \eb
+  line = re.sub('\\\\EB *','', line) # remove \bb, \eb
+  # line = re.sub(',.*', '', line)  # remove all after comma
+  line = re.sub('[ \W]', '-', line)  # replace specials with -
+  line = re.sub('^X--LINKED','XLINKED', line) # these sort with the x's
+  if debug: print "key data: ", line
+  ll = string.splitfields(line,'-')
+  if debug: print "   list = ", ll
+
+  nl = ''
+  nl2 = ''
+  for s in ll:
+     if debug: print "   examine ", s, " len = ", len(s)
+     # if re.match('^U$',s): nl = nl + s;    # 'U' sorts
+     if len(s)<1: continue
+     if re.match(' GENE ',s):              # xxx Gene -> xxxgene
+        nl = ll;
+        break;
+     if re.match('\d',s): continue;        # skip leading digit fields
+     if re.match('^OH$',s): continue;      # skip 'OH'
+     if re.match('^DL$',s): continue;      # skip 'DL'
+     if len(s)==1:
+        if nl2=='': nl2 = s
+        continue
+     # else if re.search('\D',s): nl = nl + s     # keep anything with a letter
+     nl = nl + s                      # keep anything with a letter
+
+  if debug: print "  key: ", `nl`
+  if nl=='':
+     if nl2=='':
+        for s in ll:
+           if len(s)==0: continue
+           if re.search('\D',s):
+              nl = nl + s
+              nl = re.sub('\d*','',s);  # remove leading digits 
+        if debug: print "  key: ", `nl`
+     else: 
+        nl = nl2
+  return nl + " " + txt0
+
+#
+# more make keys 
+# 
+def keytext_2(txt):
+  # print " keytext_2 in: ", txt
+  line = re.sub('\\\\bfr.*', '', txt) 
+  line = string.upper(string.strip(line))
+  line = re.sub('\$', '', line)
+  line = re.sub('[  *]', ' ', line) 
+  line = re.sub('\\\\-', '', line) 
+  line = re.sub('\\\\', '', line) 
+  line = re.sub('--', '-', line) 
+  # print "key data: ", line
+  return line
+
+af = {}
+
+def save_key(f, l, key, nam):
+  global agent_no
+
+  if l.has_key(key):
+     # print 'ag=%d, last [%s] = %d' %(agent_no, key, l[key])
+     if l[key]==agent_no: return
+  old = nam + ' \\bfr '
+  if f.has_key(key):
+      old = f[key] + ','
+  f[key] = old + " \\s " + `agent_no`
+  l[key] = agent_no
+
+
+
+#
+# fix tex output of agents
+# -- delete multiple spaces
+#    delete spaces at end of line
+#    fix (`yy) -> bold 19yy or bold 20yy
+#
+
+s_sss = re.compile('  +')
+s_ssn = re.compile(' +\n')
+s_d19b = re.compile('\'(?P<yy>9[789])')  # 1997-1999
+s_d19 = re.compile('\'(?P<yy>[6789]\d)') # pre 1997
+s_d20q = re.compile('\'(?P<yy>0[01234]\d)') # 2000-2004
+s_d20qb = re.compile('\'(?P<yy>[012345]\d)') # 2005 and later (bold)
+s_d20n = re.compile('\((?P<yy>200[0-4])\)')       # 2000-2004 no quote
+s_d20nb = re.compile('\((?P<yy>20\d\d)\)')       # 2000-2009 no quote (bold)
+s_sdd = re.compile(' +--')
+s_dds = re.compile('(?P<t>[^(pre)]--) +')
+s_ddn = re.compile('(?P<t>[^(pre)]--)\n')
+s_ndd = re.compile('\n--')
+s_eta = re.compile('et al(?P<t>[^\.])')
+
+def fix_agent_tex(txt):
+  txt = s_sss.sub(' ',txt)
+  txt = s_ssn.sub('\n',txt)
+  txt = s_d20n.sub('(\\\\b\g<yy>)',txt)
+  txt = s_d20nb.sub('(\\\\b\g<yy>)',txt)
+  txt = s_d19b.sub('19\g<yy>',txt)
+  txt = s_d19.sub('19\g<yy>',txt)
+  txt = s_d20q.sub('\\\\b20\g<yy>',txt)
+  txt = s_d20qb.sub('\\\\b20\g<yy>',txt)
+  txt = s_sdd.sub('--',txt)
+  txt = s_dds.sub('\g<t>',txt)
+  txt = s_ddn.sub('\g<t>%\n',txt)
+  txt = s_ndd.sub('%\n--',txt)
+  txt = s_eta.sub('et al.\g<t>',txt)
+  return txt
+#
+# main:
+#
+
+author_list = {}
+author_last = {}
+agent_list = {}
+agent_last = {}
+
+# process all files
+
+for dat_file in input_data:
+ if dat_file=='': continue
+ f = open(dat_file, 'r')
+ print '\n(%s) ' % (dat_file)
+ while (1):
+   nt, nl = getline(f)
+   if nl == '':
+      break
+   
+   if nt == typ_ag:
+       agnam = string.strip(re.sub('\n',' ',nl[4:]))
+       agnam = re.sub('See Also Under *','',agnam)
+       agent_no = agent_no + 1
+       agkey = keytext(agnam) 
+       # print "Agent %d: \'%s\'" % (agent_no, agnam)
+       if math.fmod(agent_no,10)==0: print '.',
+       if math.fmod(agent_no,100)==0: print '(%d)\n'%(agent_no),
+       save_key(agent_list, agent_last, agkey, agnam)
+       
+   if nt == typ_syn:
+       for s in string.split(string.strip(re.sub('\n',' ',nl[5:])), ';'):
+          synam = string.strip(s)
+          if synam=='': continue
+          sykey = keytext(synam)
+          # print "  syn %d is \'%s\', key=%s" % (agent_no, synam, sykey)
+          save_key(agent_list, agent_last, sykey, synam)
+       
+       
+   if nt == typ_bib:
+       autxt = re.sub(':.*','',re.sub('\n',' ',string.strip(nl[5:])))
+       autxt = re.sub('\\\\bb ','', autxt)
+       autxt = re.sub(' and ',';', autxt)
+       # print "  authors: ", autxt
+       for a in string.split(autxt, ';'):
+           anam = string.strip(a)
+           if anam=='': continue
+           akey = string.upper(anam)
+           akey = re.sub('^THE ','',akey)
+           akey = re.sub(' ','',akey)
+           # print "  author %d is \'%s\', key=%s" % (agent_no, anam, akey)
+           save_key(author_list, author_last, akey, anam)
+  
+
+
+#
+# write author and agent index files for latex
+
+
+# author:  write tex for index 
+
+print "Writing author data"
+
+f = open(author_tex,'w')
+
+al = author_list.keys()
+al.sort()
+l=''
+k=''
+for a in al:
+   txt = author_list[a]
+   k = string.upper(txt[0])
+   if l!='' and l!=k: f.write('\\idxsep\n')
+   f.write(txt + '\\efr' + '\n')
+   l = k
+f.close()
+
+
+# agents: tex for index and keys for search
+
+print "Writing agent data"
+
+f = open(agent_tex,'w')
+
+sl = agent_list.keys()
+sl.sort()
+l=''
+for s in sl:
+   txt = agent_list[s]
+   key = keytext_2(txt)
+   if l!='' and l!=s[0]: f.write('\\idxsep\n')
+   f.write(txt + '\\efr' + '\n')
+   l = s[0]
+f.close()
+   
+print "done"
+

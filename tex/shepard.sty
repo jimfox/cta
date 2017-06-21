@@ -1,0 +1,335 @@
+% latex macros for the 8th Edition of Shepard's book
+%
+% \ProvidesPackage{shepard}[98/07/02 1.1 Shepard's book style]
+\ProvidesPackage{shepard}[04/01/16 Shepard's book style]
+
+\def\rm{\rmfamily\mdseries\upshape}
+\def\it{\rmfamily\mdseries\itshape}
+
+
+%
+\usepackage{newcent}
+\usepackage{multicol}
+\usepackage{textmath}  % uses newcent for simple math
+% \usepackage{ifthen}
+
+% The agent directory and indices are 8pt
+% The introduction is 10pt
+
+\usepackage{shep8}
+
+\voffset-4pc
+\hoffset-4pc
+\topmargin36\p@
+\headheight12\p@
+\headsep18\p@
+\textwidth 520\p@ 
+\textheight 662\p@ 
+\columnsep 18\p@
+\oddsidemargin 4pc
+\evensidemargin 4pc
+\parskip\z@
+\parindent 15\p@
+\flushbottom
+
+\newdimen\prefacetextwidth
+\prefacetextwidth 408\p@
+\newdimen\prefaceadjust
+\prefaceadjust 112\p@
+
+% Normal font is newcentury
+
+\renewcommand{\rmdefault}{pnc}
+\renewcommand{\sfdefault}{phv}
+\renewcommand{\ttdefault}{pcr}
+
+\tolerance800
+\emergencystretch2em
+\doublehyphendemerits5000
+\hfuzz\z@
+
+
+\def\bfdefault{b}
+
+%
+% Add alignment rules to the pages
+%
+
+\def\@ruletext{\normalfont\small
+   Shepard, \textit{Catalog of Teratogenic Agents}, page \thepage}
+    
+\def\topcornerrules{%
+    {\setbox0=\vbox to\z@{\offinterlineskip\vss
+       \hbox to\z@{\vrule height18pt width.4pt depth4pt\hskip2pc
+           \@ruletext\hss}
+       \hbox to6pt{\hss\vrule width24pt height.4pt}%
+       \hbox to\z@{\vrule height0pt width.4pt depth6pt\hss}}%
+     \dp0=0pt\box0
+    }}
+
+
+
+% this definition from latex.dtx
+
+
+
+\def\@outputpage{%
+\begingroup           % the \endgroup is put in by \aftergroup
+  \let \protect \noexpand
+  \@resetactivechars
+  \@parboxrestore
+  \shipout \vbox{%
+    \set@typeset@protect
+    \aftergroup \endgroup
+    \aftergroup \set@typeset@protect
+                                % correct? or just restore by ending
+                                % the group?
+  \if@specialpage
+    \global\@specialpagefalse\@nameuse{ps@\@specialstyle}%
+  \fi
+  \if@twoside
+    \ifodd\count\z@ \let\@thehead\@oddhead \let\@thefoot\@oddfoot
+         \let\@themargin\oddsidemargin
+    \else \let\@thehead\@evenhead
+       \let\@thefoot\@evenfoot \let\@themargin\evensidemargin
+    \fi
+  \fi
+  \reset@font
+  \normalsize
+  \let\label\@gobble
+  \let\index\@gobble
+  \let\glossary\@gobble
+  \baselineskip\z@skip \lineskip\z@skip \lineskiplimit\z@
+    \@begindvi
+                    \topcornerrules
+    \vskip \topmargin
+    \moveright\@themargin \vbox {%
+      \setbox\@tempboxa \vbox to\headheight{%
+        \vfil
+        \color@hbox
+          \normalcolor
+          \hb@xt@\textwidth{\@thehead}%
+        \color@endbox
+        }%                        %% 22 Feb 87
+      \dp\@tempboxa \z@
+      \box\@tempboxa
+      \vskip \headsep
+      \box\@outputbox
+      \baselineskip \footskip
+      \color@hbox
+        \normalcolor
+        \hb@xt@\textwidth{\@thefoot}%
+      \color@endbox
+      }%
+    }%
+  \global \@colht \textheight
+  \stepcounter{page}%
+  \let\firstmark\botmark
+}
+% Page headers and footers
+
+\newcommand{\clearemptydoublepage}{\newpage
+   {\pagestyle{empty}\cleardoublepage}}
+
+\newcount\Firstmark\Firstmark=1
+\def\Firstm@rk{\the\Firstmark}
+
+\def\ps@plain{%
+   \let\@oddhead\@empty\let\@evenhead\@empty\let\@evenfoot\@empty
+   \def\@oddfoot{\hbox{}\hfill\normalfont\mdseries\upshape\normalsize
+      \thepage\hbox{}}}
+\def\ps@normal{%
+  \def\@oddhead{\hbox{}\rmfamily\mdseries\upshape\normalsize\unskip
+      \thepage\hfil\bfseries\botmark\hbox{}}%
+  \def\@evenhead{\hbox{}\rmfamily\bfseries\upshape\normalsize\unskip
+      \firstmark\hfil\mdseries\thepage\hbox{}}}
+
+\pagestyle{normal}
+
+\frenchspacing
+
+% Preface pages different style
+
+\newenvironment{preface}%
+ {\def\ps@plain{%
+     \let\@oddhead\@empty\let\@evenhead\@empty\let\@evenfoot\@empty
+     \def\@oddfoot{\hbox{}\hfill\normalfont\mdseries\upshape\normalsize
+         \rlap{\hbox to\prefaceadjust{\hss\thepage}}}}
+  \def\ps@normal{%
+     \let\@oddfoot\@empty\let\@evenfoot\@empty
+     \def\@oddhead{\hbox{}\hfill\normalfont\mdseries\upshape\normalsize
+         \rlap{\hbox to\prefaceadjust{\hss\thepage}}}%
+     \def\@evenhead{\hbox{}\normalfont\mdseries\upshape\normalsize
+         \llap{\hbox to\prefaceadjust{\thepage\hss}}\hfill\hbox{}}}
+  \pagestyle{normal}
+  \textwidth \prefacetextwidth
+  \linewidth \prefacetextwidth
+  \columnwidth \prefacetextwidth
+  \hsize \prefacetextwidth
+  \advance\evensidemargin by56pt
+  \setcounter{page}{1}
+  \pagenumbering{roman}
+  \frenchspacing
+  \large
+  }%
+  {\clearemptydoublepage}
+
+% Index pages different style
+
+\newenvironment{shindex}[2]%
+ {\def\ps@normal{%
+     \let\@oddfoot\@empty\let\@evenfoot\@empty
+     \def\@oddhead{\hbox{}\normalfont\mdseries\upshape\normalsize
+         \thepage\hfill\hbox{}}%
+     \def\@evenhead{\hbox{}\hfill\normalfont\mdseries\upshape\normalsize
+         \thepage\hbox{}}}
+  \let\ps@plain\ps@normal
+  \pagestyle{normal}
+    \small
+  % index files have a lot of junk
+  \def\s{\hskip0pt plus3pt\relax}
+  \let\ss\relax
+  \let\sss\relax
+  \def\bfr{\unskip, }
+  \def\efr{\par\relax}
+  \clearemptydoublepage
+  \begin{multicols}{#2}
+  \addcontentsline{toc}{chapter}{#1}
+  \parindent=0pt
+  \parskip=0pt
+  \setbox0=\vbox{\reset@font
+    \LARGE \sffamily \uppercase{#1}\par}
+  \ht0=\z@\dp0=\z@
+  \box0 \ \par \ \par
+  \everypar={\hangindent=1pc\hangafter=1
+     \rightskip0pt plus6pt minus1pt\spaceskip.3em\xspaceskip.4em
+     }%
+  }
+  {\end{multicols}\clearemptydoublepage}
+
+
+% 
+%
+% Normal Chapter Headings
+%
+\setcounter{secnumdepth}{-2}
+\def\@makechapterhead#1{%
+  \vspace*{50\p@}%
+  {\parindent \z@ \raggedright \reset@font
+    \LARGE \sffamily \uppercase{#1}\par
+    \nobreak
+    \vskip 40\p@
+  }}
+
+\let\@makeschapterhead\@makechapterhead
+
+
+% table of contents entries
+
+\renewcommand\contentsname{CONTENTS}
+\renewcommand\l@chapter[2]{%
+    \addpenalty{-\@highpenalty}%
+    \vskip 18pt 
+    \setlength\@tempdima{1.5em}%
+    \begingroup
+      \parindent \z@ \rightskip \@pnumwidth
+      \parfillskip -\@pnumwidth
+      \leavevmode \rmfamily
+      \advance\leftskip\@tempdima
+      \hskip -\leftskip
+      \large
+      #1\nobreak\  / \nobreak #2\hfill\ \par
+      \penalty\@highpenalty
+    \endgroup
+  }
+
+
+
+\def\r{$^{\hbox{\tiny R}}$\ }
+\def\tm{$^{\hbox{\tiny TM}}$\ }
+\def\tmm{$^{\hbox{\tiny TM}}$}
+
+%  \spaceskip .33em plus .2em minus .2em
+
+\renewcommand\descriptionlabel[1]{#1}
+
+\def\@listI{\leftmargin14pt
+            \labelwidth10pt
+            \labelsep4pt
+            \parsep 0\p@ 
+            \topsep 0\p@
+            \itemsep2\p@ plus.5\p@ minus.1\p@}
+\let\@listi\@listI
+\@listi
+\def\@listii {\leftmargin11pt
+              \labelwidth8pt
+              \labelsep3pt
+              \topsep    0\p@ 
+              \parsep    0\p@
+              \itemsep   2\p@}
+
+
+\newenvironment{references}
+ {\vspace*{18pt}
+  \topsep1pc
+  \parindent0pt{\sffamily REFERENCES} % \vspace*{1pc}
+\begin{multicols}{2}
+  \parskip1pt
+  \frenchspacing
+  \Mediumlarge
+  \def\item{\par\hangindent1em\hangafter-1}
+ }
+ {\par\frenchspacing\end{multicols}}
+\def\refrule{\vrule height0pt depth .4pt width24pt}
+
+
+\newcount\n@r
+\newenvironment{numreferences}
+ {\vspace*{18pt}
+  \topsep1pc
+  \parindent0pt{\sffamily ENDPAPER REFERENCES} % \vspace*{1pc}
+\begin{multicols}{2}
+  \parskip1pt
+  \n@r=0
+  \frenchspacing
+  \Mediumlarge
+  \def\item{\vskip0\p@ plus.5\p@\par\hangindent1em\hangafter-1
+    \leavevmode\hbox to1.7em{\global\advance\n@r by1\relax
+    \the\n@r.\hfill}}
+ }
+ {\par\frenchspacing\end{multicols}}
+
+
+% detail macros
+%
+
+\def\G{\hbox{\scriptsize G}}
+\let\bb\relax
+\let\eb\relax
+\let\part\relax
+\def\syn{\it}
+\def\cas{\rm CAS }
+\def\see{\rm see \it}
+\def\also{\rm also see \it}
+\newcount\agnum \agnum=0
+\def\ag{\par\advance\agnum by1
+        \let\bibskip\smallskip
+        \normalsize
+        \begingroup 
+        % \spaceskip .3em plus 1em 
+        \bigskip\noindent
+        \hbox {\bfseries\the\agnum\ \ }
+        \mark{\the\agnum}\nobreak 
+        \sffamily\bfseries\raggedright\ignorespaces}
+\let\nag\ag 
+\def\abs{\par\endgroup\nobreak\smallskip\rm}
+\def\bib{\par\bibskip\rm\let\bibskip\relax\small}
+ 
+% bold date
+\def\b#1#2#3#4{{\bf #1#2#3#4}}
+
+\newdimen\halfcolsiz
+\halfcolsiz=175pt
+
+\def\idxsep{\vspace{\baselineskip}}
+\def\emspace{\hspace{1em}}

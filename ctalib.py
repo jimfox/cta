@@ -78,9 +78,6 @@ def load_agents():
     return agents
 
 def save_agents(agents):
-    if not os.getenv('SERVER_SOFTWARE','').startswith('Google App Engine/'):
-        print 'no local save'
-        return
     filename = _catalog_filename()
     logging.info('Saving catalog to: ' + filename)
     write_retry_params = gcs.RetryParams(backoff_factor=1.1)
@@ -91,9 +88,6 @@ def save_agents(agents):
     logging.info('save completed')
 
 def log_agent(agent):
-    if not os.getenv('SERVER_SOFTWARE','').startswith('Google App Engine/'):
-        print 'no local agent log'
-        return
     filename = _agent_filename()
     logging.info('Logging agent to: ' + filename)
     write_retry_params = gcs.RetryParams(backoff_factor=1.1)
@@ -169,3 +163,12 @@ def save_medex(agents):
                 text = re.sub(p, r, text)
             cloudstorage_file.write(text)
     logging.info('save completed')
+
+def gen_medex(agents):
+    ret = ''
+    for a in sorted(agents):
+        text = agents[a].text
+        for p,r in _medex_subs:
+            text = re.sub(p, r, text)
+        ret = ret + text
+    return ret

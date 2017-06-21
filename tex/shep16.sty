@@ -1,0 +1,100 @@
+%% 
+%% This is shepard's book shep8.sty
+%% (from bk10.clo)
+%% 
+%% 
+\ProvidesFile{shep8.sty}[\filedate\space
+                      Shepard's font selections (tesster)]
+
+\renewcommand\normalsize{% 8/9.5
+   \@setfontsize\normalsize\@viiipt{20}
+   \abovedisplayskip 16\p@ \@plus2\p@ \@minus5\p@
+   \abovedisplayshortskip \z@ \@plus3\p@
+   \belowdisplayshortskip 16\p@ \@plus3\p@ \@minus3\p@
+   \belowdisplayskip \abovedisplayskip
+   \let\@listi\@listI}
+\normalsize
+\renewcommand\small{% 7/8.5
+   \@setfontsize\small\@viipt{16}%
+   \abovedisplayskip 16\p@ \@plus3\p@ \@minus4\p@
+   \abovedisplayshortskip \z@ \@plus2\p@
+   \belowdisplayshortskip 8\p@ \@plus2\p@ \@minus2\p@
+   \def\@listi{\leftmargin\leftmargini
+               \topsep 4\p@ \@plus2\p@ \@minus2\p@
+               \parsep 1\p@ \@plus0\p@ \@minus1\p@
+               \itemsep \parsep}%
+   \belowdisplayskip \abovedisplayskip
+}
+\renewcommand\footnotesize{% 6/8
+   \@setfontsize\footnotesize\@vipt\@viiipt
+   \abovedisplayskip 6\p@ \@plus2\p@ \@minus4\p@
+   \abovedisplayshortskip \z@ \@plus\p@
+   \belowdisplayshortskip 3\p@ \@plus\p@ \@minus2\p@
+   \def\@listi{\leftmargin\leftmargini
+               \topsep 3\p@ \@plus\p@ \@minus\p@
+               \parsep 0\p@ \@plus0\p@ \@minus0\p@
+               \itemsep \parsep}%
+   \belowdisplayskip \abovedisplayskip
+}
+\renewcommand\scriptsize{\@setfontsize\scriptsize\@vipt\@viipt}
+\renewcommand\tiny{\@setfontsize\tiny\@vpt\@vipt}
+\renewcommand\large{\@setfontsize\large\@xpt{24}}
+\renewcommand\Large{\@setfontsize\Large\@xiipt{28}}
+\renewcommand\LARGE{\@setfontsize\LARGE\@xivpt{36}}
+\renewcommand\huge{\@setfontsize\huge\@xviipt{44}}
+\renewcommand\Huge{\@setfontsize\Huge\@xxpt{50}}
+
+\newcommand\mediumsmall{\@setfontsize\small\@viipt{9.5}} % 7/9.5
+\newcommand\mediumlarge{\@setfontsize\mediumlarge\@ixpt{20}} % 9/10.5
+\newcommand\Mediumlarge{\@setfontsize\mediumlarge\@ixpt{22}} % 9/11
+\newcommand\mediumLarge{\@setfontsize\mediumLarge\@ixpt{24}} % 9/12
+\newcommand\mediumLARGE{\@setfontsize\mediumLARGE{16}{30}}
+\newcommand\mediumHUGE{\@setfontsize\mediumHUGE{44}{60}}
+\newcommand\HUGE{\@setfontsize\HUGE{25}{33}}
+
+
+
+\@settopoint\topmargin
+\setlength\footnotesep{6.65\p@}
+\setlength{\skip\footins}{9\p@ \@plus 4\p@ \@minus 2\p@}
+\setlength\floatsep    {12\p@ \@plus 2\p@ \@minus 2\p@}
+\setlength\textfloatsep{20\p@ \@plus 2\p@ \@minus 4\p@}
+\setlength\intextsep   {12\p@ \@plus 2\p@ \@minus 2\p@}
+\setlength\dblfloatsep    {12\p@ \@plus 2\p@ \@minus 2\p@}
+\setlength\dbltextfloatsep{20\p@ \@plus 2\p@ \@minus 4\p@}
+\setlength\@fptop{0\p@ \@plus 1fil}
+\setlength\@fpsep{8\p@ \@plus 2fil}
+\setlength\@fpbot{0\p@ \@plus 1fil}
+\setlength\@dblfptop{0\p@ \@plus 1fil}
+\setlength\@dblfpsep{8\p@ \@plus 2fil}
+\setlength\@dblfpbot{0\p@ \@plus 1fil}
+\setlength\partopsep{2\p@ \@plus 1\p@ \@minus 1\p@}
+\def\@listI{\leftmargin\leftmargini
+            \parsep 4\p@ \@plus2\p@ \@minus\p@
+            \topsep 8\p@ \@plus2\p@ \@minus4\p@
+            \itemsep1\p@ \@plus1\p@ \@minus1\p@}
+\let\@listi\@listI
+\@listi
+\def\@listii {\leftmargin\leftmarginii
+              \labelwidth\leftmarginii
+              \advance\labelwidth-\labelsep
+              \topsep    4\p@ \@plus2\p@ \@minus\p@
+              \parsep    0\p@ \@plus0\p@  \@minus0\p@
+              \itemsep   \parsep}
+\def\@listiii{\leftmargin\leftmarginiii
+              \labelwidth\leftmarginiii
+              \advance\labelwidth-\labelsep
+              \topsep    2\p@ \@plus\p@\@minus\p@
+              \parsep    \z@
+              \partopsep \p@ \@plus\z@ \@minus\p@
+              \itemsep   \topsep}
+\def\@listiv {\leftmargin\leftmarginiv
+              \labelwidth\leftmarginiv
+              \advance\labelwidth-\labelsep}
+\def\@listv  {\leftmargin\leftmarginv
+              \labelwidth\leftmarginv
+              \advance\labelwidth-\labelsep}
+\def\@listvi {\leftmargin\leftmarginvi
+              \labelwidth\leftmarginvi
+              \advance\labelwidth-\labelsep}
+
