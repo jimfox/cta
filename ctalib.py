@@ -13,10 +13,27 @@ import webapp2
 from google.appengine.api import app_identity
 
 
+def _mksrt(str):
+    r = str.lower()
+    r = re.sub('[()\[\]\'"+]','',r)
+    r = re.sub(' ','-',r)
+    r = re.sub('^\w-','-',r)
+    r = re.sub('-\w-','',r)
+    r = re.sub('beta-','',r)
+    r = re.sub('alpha-','',r)
+    r = re.sub('gamma-','',r)
+    r = re.sub('\$[^\$]*\$','',r)
+    r = re.sub('[- \,]','',r)
+    r = re.sub('^\d+','',r)
+    if len(r) < 3:
+        r = str.lower()
+    return r
+
 class Agent():
 
     def __init__(self, agent_name):
         self.name = agent_name
+        self.sort = _mksrt(agent_name)
         self.syns = []
         self.text = ''
 
@@ -47,12 +64,9 @@ def _agent_filename():
 def load_agents():
     agents = {}
 
-    if os.getenv('SERVER_SOFTWARE','').startswith('Google App Engine/'):
-        filename = _catalog_filename()
-        logging.info('Loading catalog from file: ' + filename)
-        f = gcs.open(filename)
-    else:
-        f = open('cat.tex','r')
+    filename = _catalog_filename()
+    logging.info('Loading catalog from gcs file: ' + filename)
+    f = gcs.open(filename)
     agent = None
     text = ''
     while True:
@@ -82,7 +96,7 @@ def save_agents(agents):
     logging.info('Saving catalog to: ' + filename)
     write_retry_params = gcs.RetryParams(backoff_factor=1.1)
     with gcs.open(filename, 'w', content_type='text/plain', retry_params=write_retry_params) as cloudstorage_file:
-        for a in sorted(agents):
+        for a in sorted(agents, key=lambda name: agents[name].sort):
             cloudstorage_file.write(agents[a].text)
 
     logging.info('save completed')
@@ -122,10 +136,10 @@ def htmlify(text):
 def agent_list(agents):
     list = []
     for a in agents.itervalues():
-        list.append([a.name, htmlify(a.name), 'a'])
+        list.append([a.name, htmlify(a.name), 'a', a.sort])
         for s in a.syns:
-            list.append([a.name, htmlify(s), 's'])
-    return sorted(list, key=lambda x: x[0])
+            list.append([a.name, htmlify(s), 's', _mksrt(s)])
+    return sorted(list, key=lambda x: x[3])
 
 
 # medex translations
@@ -157,7 +171,7 @@ def save_medex(agents):
     logging.info('Saving medex to: ' + filename)
     write_retry_params = gcs.RetryParams(backoff_factor=1.1)
     with gcs.open(filename, 'w', content_type='text/plain', retry_params=write_retry_params) as cloudstorage_file:
-        for a in sorted(agents):
+        for a in sorted(agents, key=lambda name: agents[name].sort):
             text = agents[a].text
             for p,r in _medex_subs:
                 text = re.sub(p, r, text)
@@ -166,7 +180,7 @@ def save_medex(agents):
 
 def gen_medex(agents):
     ret = ''
-    for a in sorted(agents):
+    for a in sorted(agents, key=lambda name: agents[name].sort):
         text = agents[a].text
         for p,r in _medex_subs:
             text = re.sub(p, r, text)
