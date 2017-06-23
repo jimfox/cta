@@ -7,8 +7,9 @@ env_variables:
   MEDEX_NAME: 'medex.txt'
 
 basic_scaling:
-  max_instances: 3
-  idle_timeout: 30m
+  max_instances: 2
+  idle_timeout: 60m
+instance_class: B2
 
 # [START handlers]
 handlers:
@@ -46,4 +47,3 @@ skip_files:
 - ^tex$
 - ^(.*/)?.*\.sav$
 - ^(.*/)?.*\.tex$
-

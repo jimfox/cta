@@ -13,6 +13,7 @@ import webapp2
 from google.appengine.api import app_identity
 
 
+# make an attempt to remove the chaff from the sorting
 def _mksrt(str):
     r = str.lower()
     r = re.sub('[()\[\]\'"+]','',r)
@@ -25,8 +26,10 @@ def _mksrt(str):
     r = re.sub('\$[^\$]*\$','',r)
     r = re.sub('[- \,]','',r)
     r = re.sub('^\d+','',r)
-    if len(r) < 3:
+    if len(r) < 2:
         r = str.lower()
+        r = re.sub('[- \,]','',r)
+        r = re.sub('^\d+','',r)
     return r
 
 class Agent():

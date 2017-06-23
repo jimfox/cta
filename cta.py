@@ -37,7 +37,6 @@ class MainPage(webapp2.RequestHandler):
     def get(self):
 
         global agents
-        # test_put()
 
         user = users.get_current_user()
         if user:
