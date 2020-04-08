@@ -116,7 +116,7 @@ class AgentHandler(webapp2.RequestHandler):
                     agent.add_syn(l[5:].strip())
                 if l.find('\\abs ') == 0:
                     break
-            agent.text = put_text
+            agent.text = put_text + '\n'
             agents[agent_name] = agent
             log_agent(agents[agent_name])
             save_agents(agents)
