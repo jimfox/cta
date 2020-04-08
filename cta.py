@@ -7,6 +7,7 @@ import os
 import urllib
 import logging
 import re
+from datetime import date
 
 from google.appengine.api import users
 
@@ -111,12 +112,22 @@ class AgentHandler(webapp2.RequestHandler):
                     return
                
             agent = Agent(agent_name)
+            lnum = 0
+            need_mod = True
             for l in lines:
                 if l.find('\\syn ') == 0:
                     agent.add_syn(l[5:].strip())
-                if l.find('\\abs ') == 0:
+                if need_mod and l.find('\\mod ') == 0:
+                    lines[lnum] = '\\mod: Last modified: ' + date.today().strftime('%Y/%m/%d')
+                    need_mod = False
+                if need_mod and l.find('\\forcemod ') == 0:
+                    lines[lnum] = '\\mod: ' + l[10:])
+                    need_mod = False
+                if need_mod and l.find('\\abs ') == 0:
+                    lines.insert(lnum, '\\mod Last modified: ' + date.today().strftime('%Y/%m/%d'))
+                    need_mod = False
                     break
-            agent.text = put_text
+            agent.text = '\n'.join(lines) + '\n'
             agents[agent_name] = agent
             log_agent(agents[agent_name])
             save_agents(agents)

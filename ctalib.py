@@ -39,12 +39,16 @@ class Agent():
         self.sort = _mksrt(agent_name)
         self.syns = []
         self.text = ''
+        self.lmod = ''
 
     def add_syn(self, syn_name):
         self.syns.append(syn_name)
 
     def add_text(self, text_content):
         self.text = text_content
+
+    def set_lmod(self, mdy):
+        self.lmod = mdy
 
 def _catalog_filename():
     bucket_name = os.environ.get('BUCKET_NAME', app_identity.get_default_gcs_bucket_name())
@@ -157,6 +161,8 @@ _medex_subs = [
   ('^\$',''),
   ('(?P<d>[^\\\\])\$','\g<d>'),
   ('\\\\\$','$'),
+  ('\\\\\&','&'),
+  ('\\\\\%','%'),
   ('\\\\alpha','alpha'),
   ('\\\\beta','beta'),
   ('\\\\delta','delta'),
@@ -165,8 +171,8 @@ _medex_subs = [
   ('{\\\\bf(?P<a>[^}]*)}','\g<a>'),
   ('\\\\b(?P<a>\d)','\g<a>'),
   ('--','-'),
-  ('\^{(?P<a>[^\]]*)}','\g<a>'),
-  ('\_{(?P<a>[^\]]*)}','\g<a>')
+  ('\^{(?P<a>[^\}]*)}','\g<a>'),
+  ('\_{(?P<a>[^\}]*)}','\g<a>')
 ]
 
 def save_medex(agents):
