@@ -32,6 +32,8 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 
 
 agents = None
+
+authorized_users = {'fox.1949@gmail.com', 'ShepCatalog@gmail.com'}
     
 class MainPage(webapp2.RequestHandler):
 
@@ -64,7 +66,10 @@ class MainPage(webapp2.RequestHandler):
             'url_linktext': url_linktext,
         }
 
-        template = JINJA_ENVIRONMENT.get_template('index.html')
+        if user.email() in authorized_users:
+            template = JINJA_ENVIRONMENT.get_template('index.html')
+        else:
+            template = JINJA_ENVIRONMENT.get_template('noperm.html')
         self.response.write(template.render(template_values))
 
 class AgentHandler(webapp2.RequestHandler):
@@ -121,12 +126,13 @@ class AgentHandler(webapp2.RequestHandler):
                     lines[lnum] = '\\mod: Last modified: ' + date.today().strftime('%Y/%m/%d')
                     need_mod = False
                 if need_mod and l.find('\\forcemod ') == 0:
-                    lines[lnum] = '\\mod: ' + l[10:])
+                    lines[lnum] = '\\mod: ' + l[10:]
                     need_mod = False
                 if need_mod and l.find('\\abs ') == 0:
                     lines.insert(lnum, '\\mod Last modified: ' + date.today().strftime('%Y/%m/%d'))
                     need_mod = False
                     break
+                lnum += 1
             agent.text = '\n'.join(lines) + '\n'
             agents[agent_name] = agent
             log_agent(agents[agent_name])
