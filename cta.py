@@ -123,13 +123,13 @@ class AgentHandler(webapp2.RequestHandler):
                 if l.find('\\syn ') == 0:
                     agent.add_syn(l[5:].strip())
                 if need_mod and l.find('\\mod ') == 0:
-                    lines[lnum] = '\\mod: Last modified: ' + date.today().strftime('%Y/%m/%d')
+                    lines[lnum] = '\\mod ' + date.today().strftime('%Y-%m-%d')
                     need_mod = False
                 if need_mod and l.find('\\forcemod ') == 0:
                     lines[lnum] = '\\mod: ' + l[10:]
                     need_mod = False
                 if need_mod and l.find('\\abs ') == 0:
-                    lines.insert(lnum, '\\mod Last modified: ' + date.today().strftime('%Y/%m/%d'))
+                    lines.insert(lnum, '\\mod ' + date.today().strftime('%Y-%m-%d'))
                     need_mod = False
                     break
                 lnum += 1

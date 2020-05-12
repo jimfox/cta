@@ -63,7 +63,7 @@ function texToHtml(tex) {
   html = html.replace(/\\ag (.*)\n/g, "<p><b>$1</b> ");
   html = html.replace(/\\syn (.*)\n/g, "<i>$1</i> ");
   html = html.replace(/\\cas (.*)\n/g, "<i>CAS $1</i>\n");
-  html = html.replace(/\\mod (.*)\n/g, "<i>Last: $1</i>\n");
+  html = html.replace(/\\mod (.*)\n/g, "<i>Last modified: $1</i>\n");
   html = html.replace(/"/g, "&rdquo;");
   html = html.replace(/'/g, "&rsquo;");
   html = html.replace(/\\abs/g, "<p align=\"justify\">");
