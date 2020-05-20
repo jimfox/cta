@@ -28,11 +28,13 @@ The LaTeX markup continues, but presently only the online editor is supported.
     3. $ mkdir lib
     4. $ pip install GoogleAppEngineCloudStorageClient -t lib
 
-5. deploy to google
+5. Deploy the app
     * $ gcloud app deploy
 
-6. view
-    * $ https://some_app_id.appspot.com/
+6. Upload the catalog (catalog.tex) to your app's principla storage bucket.
+
+7. View
+    * $ https://your-apps-id.appspot.com/
 
 
 
